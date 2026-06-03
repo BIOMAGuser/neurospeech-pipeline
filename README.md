@@ -402,7 +402,6 @@ docker compose restart backend
 | Bereich | Datei |
 |---------|-------|
 | Ordnerstruktur | [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md) |
-| Claude / AI Agent Referenz | [CLAUDE.md](CLAUDE.md) |
 | Frontend | [frontend/README.md](frontend/README.md) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 | API Docs | http://localhost:8088/api/docs |
