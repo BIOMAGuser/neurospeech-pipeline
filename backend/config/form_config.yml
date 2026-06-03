@@ -1,0 +1,47 @@
+patient_form:
+  fields:
+    - key: birthDate
+      type: date
+      label: Geburtsdatum
+      required: false
+
+    - key: gender
+      type: select
+      label: Geschlecht
+      required: false
+      placeholder: "Auswählen..."
+      options:
+        - value: m
+          label: Männlich
+        - value: f
+          label: Weiblich
+        - value: d
+          label: Divers
+
+    - key: group
+      type: select
+      label: Gruppe
+      required: false
+      placeholder: "Auswählen..."
+      options:
+        - value: Kontrolle
+          label: Kontrolle
+        - value: Parkinson
+          label: Parkinson
+        - value: Sonstiges
+          label: Sonstiges
+
+    - key: mocaScore
+      type: number
+      label: MoCa-Wert
+      required: false
+      placeholder: "0-30"
+      min: 0
+      max: 30
+
+    - key: notes
+      type: textarea
+      label: Bemerkungen
+      required: false
+      placeholder: "Zusätzliche Anmerkungen..."
+      full_width: true

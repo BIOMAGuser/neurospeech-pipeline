@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="8" fill="#2563eb"/>
+  <g transform="translate(4, 4)" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Brain outline -->
+    <path d="M12 3C9.5 3 7.5 4.5 7 6.5C5 6.5 3 8.5 3 11C3 13 4 14.5 5.5 15.2C5.2 16 5 17 5 18C5 20.5 7 22.5 9.5 22.5C10.5 22.5 11.3 22.2 12 21.7"/>
+    <path d="M12 3C14.5 3 16.5 4.5 17 6.5C19 6.5 21 8.5 21 11C21 13 20 14.5 18.5 15.2C18.8 16 19 17 19 18C19 20.5 17 22.5 14.5 22.5C13.5 22.5 12.7 22.2 12 21.7"/>
+    <!-- Center line -->
+    <path d="M12 3V22"/>
+    <!-- Neural connections -->
+    <circle cx="9" cy="10" r="1" fill="white"/>
+    <circle cx="15" cy="10" r="1" fill="white"/>
+    <circle cx="9" cy="16" r="1" fill="white"/>
+    <circle cx="15" cy="16" r="1" fill="white"/>
+    <line x1="9" y1="10" x2="15" y2="16" opacity="0.6"/>
+    <line x1="15" y1="10" x2="9" y2="16" opacity="0.6"/>
+  </g>
+</svg>

@@ -1,0 +1,104 @@
+# FHIR R4 mapping specification for SpeechScribe export/import.
+# Single source of truth for the bidirectional mapping between
+# SpeechScribe models (Patient, Analysis, Trial) and FHIR resources.
+
+fhir_version: "R4"
+bundle_type: "collection"
+
+systems:
+  patient_id: "http://speechscribe.local/fhir/patient-id"
+  session_id: "http://speechscribe.local/fhir/session-analysis-id"
+  attempt_id: "http://speechscribe.local/fhir/attempt-id"
+  task_type: "http://speechscribe.local/fhir/CodeSystem/task-type"
+  report_type: "http://speechscribe.local/fhir/CodeSystem/report-type"
+  metric: "http://speechscribe.local/fhir/CodeSystem/speech-metric"
+  extension: "http://speechscribe.local/fhir/StructureDefinition"
+  category: "http://terminology.hl7.org/CodeSystem/v2-0074"
+
+# -- Patient ------------------------------------------------------------------
+patient:
+  resourceType: "Patient"
+  identifier:
+    system_key: "patient_id"  # references systems.patient_id
+    field: "patient_id"
+  gender:
+    field: "gender"
+    export_map:
+      m: "male"
+      f: "female"
+      d: "other"
+    import_map:
+      male: "m"
+      female: "f"
+      other: "d"
+      unknown: null
+    default: "unknown"
+  birthDate:
+    field: "birth_date"
+    format: "date"
+
+# -- DiagnosticReport (from Analysis) -----------------------------------------
+diagnostic_report:
+  resourceType: "DiagnosticReport"
+  status: "final"
+  category:
+    system_key: "category"
+    code: "SP"
+    display: "Speech Pathology"
+  code:
+    system_key: "report_type"
+    code: "speech-analysis"
+    display: "Speech Analysis Report"
+  identifier:
+    system_key: "session_id"
+    field: "session_analysis_id"
+  effectiveDateTime:
+    field: "date"
+    format: "date"
+  conclusion:
+    field: "notes"
+  extensions:
+    - url_suffix: "moca-score"
+      field: "moca_score"
+      valueType: "valueInteger"
+    - url_suffix: "patient-group"
+      field: "group"
+      valueType: "valueString"
+
+# -- Observation (from Trial) -------------------------------------------------
+observation:
+  resourceType: "Observation"
+  status: "final"
+  identifier:
+    system_key: "attempt_id"
+    field: "attempt_id"
+  code:
+    system_key: "task_type"
+    field: "task"
+    display_map:
+      veggie: "Vegetable Naming Task"
+      saying: "Saying Explanation Task"
+      picture: "Picture Description Task"
+  effectiveDateTime:
+    field: "processed_at"
+    format: "datetime"
+  valueString:
+    field: "transcript"
+  # Fixed components (always present if value is not null)
+  components:
+    - code: "points"
+      display: "Points"
+      field: "points"
+      valueType: "valueInteger"
+    - code: "audio-duration"
+      display: "Audio Duration (seconds)"
+      field: "audio_duration_seconds"
+      valueType: "valueQuantity"
+      unit: "s"
+    - code: "total-word-count"
+      display: "Total Word Count"
+      field: "total_word_count"
+      valueType: "valueInteger"
+  # Dynamic components from metrics_json: each key becomes a component.
+  # Type inference: int -> valueInteger, float -> valueQuantity, list -> valueString (JSON)
+  metrics_field: "metrics_json"

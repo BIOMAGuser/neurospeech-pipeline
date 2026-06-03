@@ -1,0 +1,94 @@
+# SpeechScribe Docker Compose — all modes use port 8088
+#
+# Default (prod):  docker compose up -d        (serves static files from ./www)
+# Dev (HMR):       docker compose --profile dev up -d
+# Or use:          ./docker-start.sh --dev | --prod
+
+services:
+  # ── Backend (always active) ─────────────────────────────────
+  backend:
+    # praat-parselmouth has no aarch64 wheel; force amd64 so the manylinux
+    # wheel installs cleanly. OrbStack/Docker Desktop on Apple Silicon use
+    # Rosetta 2 to run amd64 images at near-native speed.
+    platform: linux/amd64
+    build:
+      context: ./backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: speechscribe-backend
+    user: root  # Dev override: bind mounts need host permissions. Production uses Dockerfile USER appuser.
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite:////app/appdata/speech1.db
+      - USER_DATABASE_URL=sqlite:////app/appdata/users.db
+    volumes:
+      - ./backend:/app
+      - ./appdata:/app/appdata
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks:
+      - speechscribe-network
+    restart: unless-stopped
+
+  # ── Nginx PROD (serves static ./www, no frontend container needed) ──
+  nginx-prod:
+    image: nginx:alpine
+    container_name: speechscribe-nginx-prod
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./docker/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./www:/www:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - speechscribe-network
+    restart: unless-stopped
+
+  # ── Frontend DEV (only with --profile dev) ──────────────────
+  frontend:
+    profiles: ["dev"]
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
+      target: dev
+    container_name: speechscribe-frontend
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8088/api
+      - WATCHPACK_POLLING=true
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - speechscribe-network
+
+  nginx:
+    profiles: ["dev"]
+    image: nginx:alpine
+    container_name: speechscribe-nginx
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./docker/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      frontend:
+        condition: service_started
+      backend:
+        condition: service_healthy
+    networks:
+      - speechscribe-network
+
+volumes:
+  frontend_node_modules:
+
+networks:
+  speechscribe-network:
+    driver: bridge

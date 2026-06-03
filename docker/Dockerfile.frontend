@@ -1,0 +1,67 @@
+# Frontend Dockerfile - Multi-stage build for Next.js
+FROM node:18-alpine AS base
+WORKDIR /app
+
+# ── Dependencies ──────────────────────────────────────────────
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# ── Dev target (HMR via next dev) ─────────────────────────────
+FROM base AS dev
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json package-lock.json* ./
+COPY --from=deps /app/node_modules ./node_modules
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+EXPOSE 3000
+CMD ["npx", "next", "dev", "--turbopack", "-p", "3000"]
+
+# ── Builder (production build) ────────────────────────────────
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Set NEXT_PUBLIC_* env vars at build time (inlined by Next.js)
+ARG NEXT_PUBLIC_API_URL=http://localhost/api
+ARG NEXT_PUBLIC_APP_NAME=PARK_SPEECH
+ARG NEXT_PUBLIC_APP_VERSION=3.0.0
+ARG NEXT_PUBLIC_BUILD_DATE=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
+ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
+ENV NEXT_PUBLIC_BUILD_DATE=$NEXT_PUBLIC_BUILD_DATE
+
+RUN npm run build
+
+# ── Runner (production runtime) ───────────────────────────────
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD ["node", "-e", "require('http').get('http://localhost:3000', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+
+CMD ["node", "server.js"]

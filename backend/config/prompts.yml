@@ -1,0 +1,106 @@
+# ============================================================
+# OpenAI Prompts & Settings
+# Central configuration for all OpenAI API interactions.
+# ============================================================
+
+# ── Whisper (Speech-to-Text) ────────────────────────────────
+whisper:
+  model: "whisper-1"
+  language: "de"
+  temperature: 0.0
+
+  prompts:
+    general: >-
+      Transkribiere ALLES inklusive äh, ähm, Pausen,
+      Wiederholungen und natürliche Sprechweise
+      für neurologische Analyse.
+    veggie: >-
+      Transkribiere ALLE gesprochenen Wörter inklusive äh, ähm,
+      Pausen, Wiederholungen bei Gemüse-Aufzählung
+      für neuropsychologische Analyse.
+    saying: >-
+      Transkribiere ALLE gesprochenen Wörter inklusive äh, ähm,
+      Zögern, natürliche Sprechweise bei Sprichwort-Erklärung
+      für neuropsychologische Analyse.
+    picture: >-
+      Transkribiere ALLE gesprochenen Wörter inklusive äh, ähm,
+      Pausen, Selbstkorrekturen bei Bildbeschreibung
+      für neuropsychologische Analyse.
+
+  verbose_prompts:
+    general: >-
+      Bitte transkribiere jedes gesprochene Wort genau wie gesagt,
+      inklusive aller äh, ähm, Pausen und natürlichen Sprechweisen
+      für medizinische Analyse.
+    veggie: >-
+      Bitte transkribiere jedes gesprochene Wort genau wie gesagt,
+      inklusive aller äh, ähm, Pausen, Stottern und Wiederholungen.
+      Es ist wichtig für medizinische Analyse.
+      Beispiel: 'äh Tomaten, ähm ja und äh Gurken'.
+    saying: >-
+      Bitte transkribiere jedes gesprochene Wort genau wie gesagt,
+      inklusive aller äh, ähm, Denkpausen und Zögern.
+      Es ist wichtig für medizinische Analyse.
+      Beispiel: 'äh also ich denke mal ähm'.
+    picture: >-
+      Bitte transkribiere jedes gesprochene Wort genau wie gesagt,
+      inklusive aller äh, ähm, Selbstkorrekturen und Pausen.
+      Es ist wichtig für medizinische Analyse.
+      Beispiel: 'äh da sehe ich ähm eine Frau die äh'.
+
+# ── GPT (Chat Completions) ─────────────────────────────────
+gpt:
+  model: "gpt-4-turbo"
+  temperature: 0.0
+  max_tokens: 1000
+
+  refine:
+    max_tokens_multiplier: 2  # max_tokens = word_count * multiplier
+    prompt: >-
+      Du bist ein Textkorrektor. Bitte korrigiere Rechtschreibung,
+      Zeichensetzung und formuliere das Transkript lesbar:
+
+  saying:
+    max_tokens: 5
+    prompt: >-
+      Du bist ein Sprachverständnis-Experte.
+
+      Ein Patient erklärt das Sprichwort: "Der Apfel fällt nicht weit vom Stamm".
+
+      **Eine Erklärung gilt als korrekt**, wenn deutlich wird, dass Kinder
+      ihren Eltern ähnlich sind – z. B. im Verhalten, Charakter oder Aussehen.
+      Auch sinngemäße oder umgangssprachliche Formulierungen sind richtig,
+      **wenn Begriffe wie "Eltern", "Mutter", "Vater", "Kinder", "Sohn",
+      "Tochter", "geerbt", "gleich", "ähnlich", "übernommen", "verhalten"
+      oder "typisch" vorkommen** und die Bedeutung klar erkennbar ist.
+
+      Bitte bewerte nur, ob die Bedeutung erkannt wurde.
+
+      Gib als Antwort **nur eine Zahl**:
+      - 1 = korrekt erklärt oder sinngemäß richtig
+      - 0 = falsch oder unverständlich
+
+      Erklärung: "{text}"
+
+  veggie:
+    max_tokens: 500
+    prompt: >-
+      Du bist ein Experte für das Deutsche und Ernährung.
+
+      Ein Patient führt eine semantische Fluenz-Aufgabe durch:
+      er/sie nennt so viele Gemüsesorten wie möglich.
+
+      **Deine Aufgabe:**
+      1. Extrahiere ALLE Gemüsesorten aus dem Text (einmalig, ohne Duplikate)
+      2. Extrahiere auch Obst, Fleisch, Milchprodukte oder andere Lebensmittel, die KEINE Gemüse sind
+
+      **Definition Gemüse:** Alle essbaren Pflanzenteile (Blätter, Wurzeln, Knollen, Früchte von Gemüsepflanzen)
+      - Kartoffel, Karotte, Brokkoli, Tomate, Paprika, Zucchini, etc.
+      - KEIN Obst (Apfel, Banane, Orange, etc.)
+      - KEIN Fleisch/Fisch (Huhn, Schwein, etc.)
+      - KEINE Milchprodukte (Käse, Butter, etc.)
+
+      **Antworte im JSON-Format (KEINE andere Erklärung):**
+      {{"vegetables": ["gemüse1", "gemüse2", ...], "unrelated_foods": ["obst1", "fleisch1", ...]}}
+
+      Text: "{text}"
