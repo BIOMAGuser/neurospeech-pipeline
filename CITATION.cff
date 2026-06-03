@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+title: neurospeech-pipeline
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Justi
+    given-names: Lydia
+    affiliation: Jena University Hospital
+  - family-names: Brodoehl
+    given-names: Stefan
+    affiliation: Jena University Hospital
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/BIOMAGuser/neurospeech-pipeline"
+version: 1.0.0
+doi: 10.5281/zenodo.XXXXXXX
